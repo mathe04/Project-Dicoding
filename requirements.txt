@@ -1,0 +1,9 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import MultiLabelBinarizer
+import mlxtend as ml
+# from scipy import sparse
+from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import association_rules
