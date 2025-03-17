@@ -1,86 +1,62 @@
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import streamlit as st
+import plotly.express as px
 
 # Load data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('dashboard/data_project.csv')
-    return df
+    data = pd.read_csv('/dashboard/data_project.csv')
+    data['order_purchase_timestamp'] = pd.to_datetime(data['order_purchase_timestamp'])
+    return data
 
-df = load_data()
+data = load_data()
 
-# Convert datetime columns
-df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
-df['order_estimated_delivery_date'] = pd.to_datetime(df['order_estimated_delivery_date'])
+# Sidebar
+st.sidebar.header('Filter Data')
+date_range = st.sidebar.date_input("Pilih Range Tanggal", [data['order_purchase_timestamp'].min(), data['order_purchase_timestamp'].max()])
+customer_state = st.sidebar.selectbox("Pilih State", data['customer_state'].unique())
 
-# Add delivery time analysis
-df['delivery_time'] = (df['order_estimated_delivery_date'] - df['order_purchase_timestamp']).dt.days
+# Filter data based on sidebar input
+filtered_data_1 = data[(data['order_purchase_timestamp'].dt.date >= date_range[0]) & (data['order_purchase_timestamp'].dt.date <= date_range[1]) & (data['customer_state'] == customer_state)]
+filtered_data_2 = data[(data['order_purchase_timestamp'].dt.date >= date_range[0]) & (data['order_purchase_timestamp'].dt.date <= date_range[1])]
 
-# Streamlit App
-st.title("E-commerce Dashboard :sparkles:")
+# Mainbar
+st.title('🛍️ E-Commerce Dashboard')
 
-# Sidebar for date range selection
-st.sidebar.header("Filter Data by Date Range")
-min_date = df['order_purchase_timestamp'].min()
-max_date = df['order_purchase_timestamp'].max()
-start_date = st.sidebar.date_input("Start Date", min_date, min_value=min_date, max_value=max_date)
-end_date = st.sidebar.date_input("End Date", max_date, min_value=min_date, max_value=max_date)
-
-# Filter data based on date range
-filtered_df = df[(df['order_purchase_timestamp'] >= pd.to_datetime(start_date)) & 
-                 (df['order_purchase_timestamp'] <= pd.to_datetime(end_date))]
-
-# Display basic metrics
-st.subheader("Basic Metrics")
+# Subheader 1: Order Overview
+st.subheader('📊 Order Overview')
 col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric("Total Orders", value=filtered_df['order_id'].nunique())
-with col2:
-    st.metric("Total Revenue", value=f"${filtered_df['price'].sum():.2f}")
-with col3:
-    st.metric("Average Delivery Time (days)", value=f"{filtered_df['delivery_time'].mean():.1f}")
+col1.metric("Total Orders", filtered_data_1['order_id'].nunique())
+col2.metric("Canceled Orders", filtered_data_1[filtered_data_1['order_status'] == 'canceled']['order_id'].nunique())
+col3.metric("Total Revenue", f"${filtered_data_1['payment_value'].sum():,.2f}")
 
-# Best Performing Product Categories
-st.subheader("Best Performing Product Categories")
-category_revenue = filtered_df.groupby('product_category_name_english')['price'].sum().sort_values(ascending=False)
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x=category_revenue.index, y=category_revenue.values, palette='viridis')
-plt.xticks(rotation=45)
-plt.xlabel("Product Category")
-plt.ylabel("Total Revenue")
+# Subheader 2: Product Performance
+st.subheader('📈 Product Performance')
+top_products = filtered_data_1['product_category_name_english'].value_counts().nlargest(5)
+bottom_products = filtered_data_1['product_category_name_english'].value_counts().nsmallest(5)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+sns.barplot(x=top_products.values, y=top_products.index, ax=ax1)
+ax1.set_title('Top 5 Products')
+sns.barplot(x=bottom_products.values, y=bottom_products.index, ax=ax2)
+ax2.set_title('Bottom 5 Products')
 st.pyplot(fig)
 
-# Price Distribution
-st.subheader("Price Distribution")
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.histplot(filtered_df['price'], bins=20, kde=True, color='skyblue')
-plt.xlabel("Price")
-plt.ylabel("Frequency")
-st.pyplot(fig)
+# Subheader 3: Payment Type Distribution
+st.subheader('💳 Payment Type Distribution')
+payment_distribution = filtered_data_1['payment_type'].value_counts()
+fig = px.pie(payment_distribution, values=payment_distribution.values, names=payment_distribution.index, title='Payment Type Distribution')
+st.plotly_chart(fig)
 
-# Freight Value Distribution
-st.subheader("Freight Value Distribution")
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.histplot(filtered_df['freight_value'], bins=20, kde=True, color='salmon')
-plt.xlabel("Freight Value")
-plt.ylabel("Frequency")
-st.pyplot(fig)
+# Subheader 4: Top Customers
+st.subheader('👤 Top Customers')
+top_customers = filtered_data_1.groupby('customer_id').agg({'order_id': 'count', 'price': 'sum'}).nlargest(3, 'price')
+st.table(top_customers)
 
-# Delivery Time Analysis
-st.subheader("Delivery Time Analysis")
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.histplot(filtered_df['delivery_time'], bins=20, kde=True, color='lightgreen')
-plt.xlabel("Delivery Time (days)")
-plt.ylabel("Frequency")
-st.pyplot(fig)
-
-# Customer State Analysis
-st.subheader("Customer State Analysis")
-state_counts = filtered_df['customer_state'].value_counts()
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x=state_counts.index, y=state_counts.values, palette='magma')
-plt.xlabel("Customer State")
-plt.ylabel("Number of Orders")
-st.pyplot(fig)
+# Subheader 5: State-wise Revenue Map
+st.subheader('🌍 State-wise Revenue')
+state_revenue = filtered_data_2.groupby('customer_state')['price'].sum().reset_index()
+fig = px.choropleth(state_revenue, locations='customer_state', locationmode='ISO-3', color='price', scope='south america', title='Total Revenue by State')
+st.plotly_chart(fig)
