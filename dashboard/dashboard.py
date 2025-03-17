@@ -90,4 +90,5 @@ st.plotly_chart(fig)
 # Subheader 4: Top Customers
 st.subheader('👤 Top Customers')
 top_customers = filtered_data_1.groupby('customer_id').agg({'order_id': 'count', 'price': 'sum'}).nlargest(3, 'price')
+top_customers = top_customers.rename(columns={'order_id': 'Total Spending'})
 st.table(top_customers)
