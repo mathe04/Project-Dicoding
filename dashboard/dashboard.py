@@ -7,7 +7,7 @@ import plotly.express as px
 # Load data
 @st.cache_data
 def load_data():
-    data = pd.read_csv('/dashboard/data_project.csv')
+    data = pd.read_csv('dashboard/data_project.csv')
     data['order_purchase_timestamp'] = pd.to_datetime(data['order_purchase_timestamp'])
     return data
 
