@@ -38,7 +38,7 @@ state_mapping = {
 # Load data
 @st.cache_data
 def load_data():
-    data = pd.read_csv('dashboard/data_project.csv')
+    data = pd.read_csv('data_project.csv')
     data['order_purchase_timestamp'] = pd.to_datetime(data['order_purchase_timestamp'])
     # Ganti inisial dengan nama negara bagian
     data['customer_state'] = data['customer_state'].map(state_mapping)
@@ -87,9 +87,3 @@ st.plotly_chart(fig)
 st.subheader('👤 Top Customers')
 top_customers = filtered_data_1.groupby('customer_id').agg({'order_id': 'count', 'price': 'sum'}).nlargest(3, 'price')
 st.table(top_customers)
-
-# Subheader 5: State-wise Revenue Map
-st.subheader('🌍 State-wise Revenue')
-state_revenue = filtered_data_2.groupby('customer_state')['price'].sum().reset_index()
-fig = px.choropleth(state_revenue, locations='customer_state', locationmode='country names', color='price', scope='south america', title='Total Revenue by State', hover_name='customer_state')
-st.plotly_chart(fig)
