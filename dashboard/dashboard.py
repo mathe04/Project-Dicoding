@@ -4,11 +4,44 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 
+# Mapping inisial ke nama negara bagian
+state_mapping = {
+    'RJ': 'Rio de Janeiro',
+    'SP': 'São Paulo',
+    'MG': 'Minas Gerais',
+    'PR': 'Paraná',
+    'GO': 'Goiás',
+    'BA': 'Bahia',
+    'AL': 'Alagoas',
+    'MS': 'Mato Grosso do Sul',
+    'CE': 'Ceará',
+    'DF': 'Distrito Federal',
+    'RS': 'Rio Grande do Sul',
+    'PE': 'Pernambuco',
+    'SC': 'Santa Catarina',
+    'ES': 'Espírito Santo',
+    'MA': 'Maranhão',
+    'PA': 'Pará',
+    'MT': 'Mato Grosso',
+    'PB': 'Paraíba',
+    'AM': 'Amazonas',
+    'AP': 'Amapá',
+    'PI': 'Piauí',
+    'TO': 'Tocantins',
+    'RO': 'Rondônia',
+    'RN': 'Rio Grande do Norte',
+    'SE': 'Sergipe',
+    'AC': 'Acre',
+    'RR': 'Roraima'
+}
+
 # Load data
-@st.cache_data
+@st.cache
 def load_data():
-    data = pd.read_csv('dashboard/data_project.csv')
+    data = pd.read_csv('data_project.csv')
     data['order_purchase_timestamp'] = pd.to_datetime(data['order_purchase_timestamp'])
+    # Ganti inisial dengan nama negara bagian
+    data['customer_state'] = data['customer_state'].map(state_mapping)
     return data
 
 data = load_data()
@@ -58,5 +91,5 @@ st.table(top_customers)
 # Subheader 5: State-wise Revenue Map
 st.subheader('🌍 State-wise Revenue')
 state_revenue = filtered_data_2.groupby('customer_state')['price'].sum().reset_index()
-fig = px.choropleth(state_revenue, locations='customer_state', locationmode='ISO-3', color='price', scope='south america', title='Total Revenue by State')
+fig = px.choropleth(state_revenue, locations='customer_state', locationmode='country names', color='price', scope='south america', title='Total Revenue by State', hover_name='customer_state')
 st.plotly_chart(fig)
