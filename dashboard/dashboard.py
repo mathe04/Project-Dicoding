@@ -36,7 +36,7 @@ state_mapping = {
 }
 
 # Load data
-@st.cache
+@st.cache_data
 def load_data():
     data = pd.read_csv('data_project.csv')
     data['order_purchase_timestamp'] = pd.to_datetime(data['order_purchase_timestamp'])
