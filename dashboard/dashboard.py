@@ -70,11 +70,15 @@ st.subheader('📈 Product Performance')
 top_products = filtered_data_1['product_category_name_english'].value_counts().nlargest(5)
 bottom_products = filtered_data_1['product_category_name_english'].value_counts().nsmallest(5)
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5), gridspec_kw={'width_ratios': [2, 1]})
 sns.barplot(x=top_products.values, y=top_products.index, ax=ax1)
 ax1.set_title('Top 5 Products')
+ax1.set_ylabel('')
 sns.barplot(x=bottom_products.values, y=bottom_products.index, ax=ax2)
 ax2.set_title('Bottom 5 Products')
+ax2.yaxis.tick_right()
+ax2.yaxis.set_label_position("right")
+plt.tight_layout()
 st.pyplot(fig)
 
 # Subheader 3: Payment Type Distribution
