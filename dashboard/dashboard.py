@@ -166,9 +166,6 @@ rfm_data['Segment'] = rfm_data['RFM_Score'].apply(lambda x: 'Best Customers' if 
                                                               'Hibernating' if x in ['111', '112', '121', '122', '211', '212', '221'] else
                                                               'Lost')
 
-# Tampilkan hasil segmentasi
-st.write(rfm_data[['new_customer_id', 'RFM_Score', 'Segment']])
-
 # Visualisasi segmentasi
 fig, ax = plt.subplots(figsize=(10, 6))
 sns.countplot(x='Segment', data=rfm_data, ax=ax, order=rfm_data['Segment'].value_counts().index)
