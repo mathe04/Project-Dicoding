@@ -97,22 +97,22 @@ st.table(top_customers)
 st.subheader('📊 Customer Segmentation')
 
 # Buat mapping dari customer_id ke ID baru
-filtered_data_2['new_customer_id'], unique_customers = pd.factorize(filtered_data_2['customer_id'])
+filtered_data_1['new_customer_id'], unique_customers = pd.factorize(filtered_data_1['customer_id'])
 
 # Recency (R)
-max_purchase_date = filtered_data_2['order_purchase_timestamp'].max()
-filtered_data_2['Recency'] = (max_purchase_date - filtered_data_2['order_purchase_timestamp']).dt.days
+max_purchase_date = filtered_data_1['order_purchase_timestamp'].max()
+filtered_data_1['Recency'] = (max_purchase_date - filtered_data_1['order_purchase_timestamp']).dt.days
 
 # Frequency (F)
-frequency_data = filtered_data_2.groupby('customer_id')['order_id'].count().reset_index()
+frequency_data = filtered_data_1.groupby('customer_id')['order_id'].count().reset_index()
 frequency_data.rename(columns={'order_id': 'Frequency'}, inplace=True)
 
 # Monetary (M)
-monetary_data = filtered_data_2.groupby('customer_id')['payment_value'].sum().reset_index()
+monetary_data = filtered_data_1.groupby('customer_id')['payment_value'].sum().reset_index()
 monetary_data.rename(columns={'payment_value': 'Monetary'}, inplace=True)
 
 # Gabungkan data RFM
-rfm_data = filtered_data_2.groupby('new_customer_id').agg({
+rfm_data = filtered_data_1.groupby('new_customer_id').agg({
     'Recency': 'min',
     'order_id': 'count',
     'payment_value': 'sum'
@@ -165,8 +165,8 @@ rfm_data['Segment'] = rfm_data['RFM_Score'].apply(lambda x: 'Best Customers' if 
                                                               'At Risk' if x in ['222', '322', '232', '223'] else
                                                               'Hibernating' if x in ['111', '112', '121', '122', '211', '212', '221'] else
                                                               'Lost')
-
 # Visualisasi segmentasi
+st.subheader('📊 Customer Segmentation Distribution')
 fig, ax = plt.subplots(figsize=(10, 6))
 sns.countplot(x='Segment', data=rfm_data, ax=ax, order=rfm_data['Segment'].value_counts().index)
 plt.xticks(rotation=90)
